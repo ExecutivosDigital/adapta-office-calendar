@@ -1,0 +1,213 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 33 60% 96%;            /* cream */
+    --foreground: 25 30% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 25 30% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 25 30% 12%;
+    --primary: 21 93% 53%;               /* brand-500 vibrante */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 28 60% 94%;
+    --secondary-foreground: 25 30% 18%;
+    --muted: 33 40% 94%;
+    --muted-foreground: 25 10% 40%;
+    --accent: 28 60% 94%;
+    --accent-foreground: 21 93% 35%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 28 40% 90%;
+    --input: 28 40% 90%;
+    --ring: 21 93% 53%;
+    --radius: 0.9rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html, body {
+    @apply text-stone-900 antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  body {
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(247, 111, 25, 0.10), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 100% 100%, rgba(255, 174, 107, 0.18), transparent 70%),
+      #FCF5EC;
+    background-attachment: fixed;
+  }
+}
+
+/* Slot button variants used in the public flow */
+@layer components {
+  .slot-btn {
+    @apply h-12 rounded-xl border text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2;
+  }
+  .slot-btn-available {
+    @apply border-brand-200 bg-white text-brand-800 hover:border-brand-500 hover:bg-brand-50 active:bg-brand-100;
+  }
+  .slot-btn-selected {
+    @apply border-brand-600 bg-brand-500 text-white shadow-md;
+  }
+  .slot-btn-unavailable {
+    @apply border-stone-200 bg-stone-100 text-stone-400 line-through cursor-not-allowed;
+  }
+  .slot-btn-past {
+    @apply border-stone-200 bg-stone-50 text-stone-300 cursor-not-allowed;
+  }
+}
+
+/* Visual primitives — gradients, glass, glow */
+@layer utilities {
+  /* Gradient principal da marca — usado em CTAs e blocos hero */
+  .bg-brand-gradient {
+    background: linear-gradient(135deg, #FF8A38 0%, #F76F19 50%, #E0560C 100%);
+  }
+  .bg-brand-gradient-soft {
+    background: linear-gradient(135deg, #FFCFA0 0%, #FF8A38 60%, #F76F19 100%);
+  }
+  .bg-cream-gradient {
+    background: linear-gradient(160deg, #FFF6EC 0%, #FCF5EC 50%, #FFE8D1 100%);
+  }
+
+  /* Faixa diagonal de luz que dá sensação 3D em cards de marca */
+  .glass-streak::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      120deg,
+      transparent 0%,
+      transparent 38%,
+      rgba(255, 255, 255, 0.18) 48%,
+      rgba(255, 255, 255, 0.32) 52%,
+      rgba(255, 255, 255, 0.10) 60%,
+      transparent 78%
+    );
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+
+  /* Sombra colorida (tinted) — laranja para CTAs, neutra para cards */
+  .shadow-brand-glow {
+    box-shadow:
+      0 10px 30px -8px rgba(247, 111, 25, 0.45),
+      0 4px 10px -4px rgba(247, 111, 25, 0.25);
+  }
+  .shadow-brand-glow-lg {
+    box-shadow:
+      0 20px 50px -12px rgba(247, 111, 25, 0.55),
+      0 8px 20px -8px rgba(247, 111, 25, 0.35);
+  }
+  .shadow-soft-lg {
+    box-shadow:
+      0 30px 60px -20px rgba(85, 33, 3, 0.18),
+      0 10px 20px -10px rgba(85, 33, 3, 0.08);
+  }
+
+  /* Pill eyebrow style (badge superior tipo "BEM-VINDO") */
+  .eyebrow-pill {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-700;
+  }
+}
+
+/* Animações & micro-interações */
+@layer utilities {
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+  .animate-shimmer {
+    animation: shimmer 1.6s linear infinite;
+    background: linear-gradient(
+      90deg,
+      rgba(231, 224, 215, 0.4) 0%,
+      rgba(245, 240, 232, 0.9) 50%,
+      rgba(231, 224, 215, 0.4) 100%
+    );
+    background-size: 1000px 100%;
+  }
+
+  @keyframes slide-up {
+    0% {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-slide-up {
+    animation: slide-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes pulse-ring {
+    0% {
+      box-shadow: 0 0 0 0 rgba(200, 90, 26, 0.45);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(200, 90, 26, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(200, 90, 26, 0);
+    }
+  }
+  .animate-pulse-ring {
+    animation: pulse-ring 1.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+
+  @keyframes confetti-pop {
+    0% {
+      transform: scale(0.5);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.08);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  .animate-confetti-pop {
+    animation: confetti-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* Stagger helpers */
+  .stagger-1 { animation-delay: 60ms; }
+  .stagger-2 { animation-delay: 120ms; }
+  .stagger-3 { animation-delay: 180ms; }
+  .stagger-4 { animation-delay: 240ms; }
+
+  /* Tap feedback — works on touch + mouse */
+  .tap-scale {
+    @apply transition-transform duration-150 active:scale-[0.97];
+  }
+
+  /* Card hover lift */
+  .hover-lift {
+    @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg;
+  }
+}
+
+/* Respeita usuários que pediram menos movimento */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .animate-pulse-ring, .animate-shimmer {
+    animation: none !important;
+  }
+}
