@@ -6,7 +6,6 @@ import { CheckCircle2, Home, Plus, Trash2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { formatDateLong } from "@/lib/time-slots";
-import { removeLocalReservation } from "@/lib/local-reservations";
 import { cancelReservationByCustomer } from "@/server/actions/reservations";
 
 export function SuccessState({
@@ -46,7 +45,6 @@ export function SuccessState({
         setConfirmingCancel(false);
         return;
       }
-      removeLocalReservation(reservationId);
       toast.success("Reserva cancelada. O horário voltou a ficar disponível.");
       onCancelled();
     });

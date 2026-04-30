@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Building2,
   Calendar,
   CalendarPlus,
   Clock,
+  LogOut,
   MapPin,
   Phone,
-  Trash2,
   Users,
   XCircle,
 } from "lucide-react";
@@ -17,63 +18,70 @@ import { toast } from "sonner";
 import { MobileTopBar } from "@/components/mobile/top-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  clearLocalReservations,
-  loadLocalReservations,
-  markLocalReservationCancelled,
-  type LocalReservation,
-} from "@/lib/local-reservations";
 import { formatDateLong, normalizeTime } from "@/lib/time-slots";
 import { cancelReservationByCustomer } from "@/server/actions/reservations";
 import { cn } from "@/lib/utils";
+import type { ReservationWithRoom } from "@/types";
 
-export function ReservasClient() {
-  const [items, setItems] = useState<LocalReservation[] | null>(null);
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 
-  useEffect(() => {
-    const refresh = () => setItems(loadLocalReservations());
-    refresh();
-    const onChange = () => refresh();
-    window.addEventListener("adapta:reservations-changed", onChange);
-    window.addEventListener("storage", onChange);
-    return () => {
-      window.removeEventListener("adapta:reservations-changed", onChange);
-      window.removeEventListener("storage", onChange);
-    };
-  }, []);
+export function ReservasClient({
+  initialReservations,
+}: {
+  initialReservations: ReservationWithRoom[];
+}) {
+  const router = useRouter();
+  const [items, setItems] = useState<ReservationWithRoom[]>(initialReservations);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  async function handleLogout() {
+    setIsLoggingOut(true);
+    try {
+      await fetch(`${API_URL}/auth/phone/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch {
+      // best-effort
+    }
+    router.push("/login");
+    router.refresh();
+  }
+
+  function onCancelSuccess(id: string) {
+    setItems((prev) =>
+      prev.map((r) =>
+        r.id === id
+          ? { ...r, status: "cancelled", cancelled_at: new Date().toISOString(), cancelled_by: "customer" }
+          : r
+      )
+    );
+  }
+
+  const activeCount = items.filter((r) => r.status === "confirmed").length;
 
   return (
     <div className="min-h-screen bg-cream">
       <MobileTopBar title="MINHAS RESERVAS" />
 
       <main className="container space-y-5 py-6">
-        {items === null ? (
-          <SkeletonList />
-        ) : items.length === 0 ? (
+        {items.length === 0 ? (
           <EmptyState />
         ) : (
           <>
             <div className="flex items-center justify-between animate-slide-up">
               <p className="text-sm text-stone-600">
-                {items.filter((r) => r.status === "confirmed").length}{" "}
-                reserva(s) ativa(s) neste dispositivo.
+                {activeCount} reserva(s) ativa(s).
               </p>
               <Button
                 variant="ghost"
                 size="sm"
-                className="tap-scale"
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      "Limpar a lista local de reservas? Isso não cancela as reservas no sistema."
-                    )
-                  ) {
-                    clearLocalReservations();
-                  }
-                }}
+                className="tap-scale text-stone-500"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
               >
-                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-                Limpar lista
+                <LogOut className="mr-1.5 h-3.5 w-3.5" />
+                Sair
               </Button>
             </div>
 
@@ -91,16 +99,25 @@ export function ReservasClient() {
                       ? "stagger-3"
                       : "stagger-4"
                   }
+                  onCancelSuccess={onCancelSuccess}
                 />
               ))}
             </div>
           </>
         )}
 
-        <p className="px-1 pt-4 text-xs text-stone-400">
-          As reservas aparecem aqui apenas no aparelho em que foram feitas.
-          Para dúvidas, fale com a equipe pelo WhatsApp.
-        </p>
+        <div className="flex justify-center pt-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="tap-scale text-stone-400 text-xs"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+          >
+            <LogOut className="mr-1.5 h-3.5 w-3.5" />
+            {isLoggingOut ? "Saindo..." : "Usar outro telefone"}
+          </Button>
+        </div>
       </main>
     </div>
   );
@@ -109,9 +126,11 @@ export function ReservasClient() {
 function Card({
   item,
   delayClass,
+  onCancelSuccess,
 }: {
-  item: LocalReservation;
+  item: ReservationWithRoom;
   delayClass: string;
+  onCancelSuccess: (id: string) => void;
 }) {
   const [isPending, startTransition] = useTransition();
   const [confirming, setConfirming] = useState(false);
@@ -129,7 +148,7 @@ function Card({
         setConfirming(false);
         return;
       }
-      markLocalReservationCancelled(item.id);
+      onCancelSuccess(item.id);
       toast.success("Reserva cancelada — horário liberado.");
     });
   }
@@ -145,7 +164,7 @@ function Card({
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="font-display text-xl font-bold text-stone-900">
-            {item.room_name}
+            {item.room.name}
           </h3>
           <p className="text-xs text-stone-500">
             Reserva #{item.id.slice(0, 8)}
@@ -163,9 +182,7 @@ function Card({
         />
         <Item
           icon={Clock}
-          text={`${normalizeTime(item.start_time)} — ${normalizeTime(
-            item.end_time
-          )}`}
+          text={`${normalizeTime(item.start_time)} — ${normalizeTime(item.end_time)}`}
         />
         <Item icon={Users} text={`${item.people_count} pessoas`} />
         <Item icon={Building2} text={item.company_name} />
@@ -239,21 +256,6 @@ function EmptyState() {
       <Link href="/" className="mt-6 inline-block">
         <Button className="tap-scale">Reservar uma sala</Button>
       </Link>
-    </div>
-  );
-}
-
-function SkeletonList() {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: 2 }).map((_, i) => (
-        <div
-          key={i}
-          className="h-32 overflow-hidden rounded-2xl bg-stone-100/70"
-        >
-          <div className="h-full w-full animate-shimmer" />
-        </div>
-      ))}
     </div>
   );
 }

@@ -1,10 +1,11 @@
 import { ReservationFlow } from "@/components/reservation-flow";
 import { getRooms } from "@/server/actions/rooms";
+import { getPhoneMe } from "@/lib/api-client";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const rooms = await getRooms();
+  const [rooms, me] = await Promise.all([getRooms(), getPhoneMe()]);
 
   if (rooms.length === 0) {
     return (
@@ -18,5 +19,5 @@ export default async function HomePage() {
     );
   }
 
-  return <ReservationFlow rooms={rooms} />;
+  return <ReservationFlow rooms={rooms} initialName={me?.name} initialPhone={me?.phone} />;
 }

@@ -2,10 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 import { CalendarDays, ListChecks, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { loadLocalReservations } from "@/lib/local-reservations";
 
 const WA_NUMBER = (
   process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "5511999999999"
@@ -16,24 +14,6 @@ const WA_HREF = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(
 
 export function BottomNav() {
   const pathname = usePathname() ?? "/";
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    const update = () => {
-      const list = loadLocalReservations().filter(
-        (r) => r.status === "confirmed"
-      );
-      setCount(list.length);
-    };
-    update();
-    const onChange = () => update();
-    window.addEventListener("adapta:reservations-changed", onChange);
-    window.addEventListener("storage", onChange);
-    return () => {
-      window.removeEventListener("adapta:reservations-changed", onChange);
-      window.removeEventListener("storage", onChange);
-    };
-  }, []);
 
   // Hide on admin routes
   if (pathname.startsWith("/admin")) return null;
@@ -58,7 +38,6 @@ export function BottomNav() {
           label="Reservas feitas"
           icon={<ListChecks className="h-5 w-5" />}
           active={isReservas}
-          badge={count > 0 ? count : undefined}
         />
         <NavItem
           href={WA_HREF}
@@ -79,7 +58,6 @@ function NavItem({
   active,
   external,
   tone,
-  badge,
 }: {
   href: string;
   label: string;
@@ -87,7 +65,6 @@ function NavItem({
   active?: boolean;
   external?: boolean;
   tone?: "whatsapp";
-  badge?: number;
 }) {
   const className = cn(
     "relative flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium transition-colors",
@@ -109,11 +86,6 @@ function NavItem({
         {icon}
       </span>
       <span>{label}</span>
-      {typeof badge === "number" && badge > 0 && (
-        <span className="absolute right-[calc(50%-22px)] top-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-brand-600 px-1 text-[10px] font-semibold text-white">
-          {badge}
-        </span>
-      )}
     </>
   );
 

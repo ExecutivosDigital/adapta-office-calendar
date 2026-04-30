@@ -2,17 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { z } from "zod";
 import {
-  clearAdminCookie,
-  isAdmin,
-  setAdminCookie,
-} from "@/lib/admin-auth";
-import {
-  dashboardCounts,
-  listReservationsRecord,
-  type ListFilters,
-} from "@/lib/store";
+  adminLoginApi,
+  adminLogoutApi,
+  getAdminReservations,
+  getDashboardMetricsApi,
+  type AdminFilters,
+} from "@/lib/api-client";
+import { clearAdminCookie, isAdmin } from "@/lib/admin-auth";
 import type { ReservationWithRoom } from "@/types";
 
 export type SignInState = {
@@ -20,47 +17,33 @@ export type SignInState = {
   error?: string;
 };
 
-const signInSchema = z.object({
-  username: z
-    .string()
-    .trim()
-    .min(3, "Usuário precisa ter pelo menos 3 caracteres.")
-    .max(40, "Usuário muito longo.")
-    .regex(/^[A-Za-z0-9._-]+$/, "Use apenas letras, números, ponto, hífen ou underline."),
-  password: z.string().min(1, "Senha obrigatória."),
-});
-
 export async function signInAdmin(
   _prevState: SignInState,
   formData: FormData
 ): Promise<SignInState> {
-  const parsed = signInSchema.safeParse({
-    username: formData.get("username"),
-    password: formData.get("password"),
-  });
+  const username = String(formData.get("username") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
 
-  if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
+  if (username.length < 3) return { ok: false, error: "Usuário precisa ter pelo menos 3 caracteres." };
+  if (!password) return { ok: false, error: "Senha obrigatória." };
+
+  try {
+    await adminLoginApi(username, password);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Usuário ou senha incorretos.";
+    return { ok: false, error: msg };
   }
 
-  const expected = process.env.ADMIN_PASSWORD;
-  if (!expected) {
-    return {
-      ok: false,
-      error: "ADMIN_PASSWORD não configurada no servidor.",
-    };
-  }
-
-  if (parsed.data.password !== expected) {
-    return { ok: false, error: "Usuário ou senha incorretos." };
-  }
-
-  await setAdminCookie(parsed.data.username);
   revalidatePath("/admin/dashboard");
   redirect("/admin/dashboard");
 }
 
 export async function signOutAdmin() {
+  try {
+    await adminLogoutApi();
+  } catch {
+    // best-effort — clear local cookie regardless
+  }
   await clearAdminCookie();
   redirect("/admin/login");
 }
@@ -72,13 +55,13 @@ async function ensureAdmin() {
 }
 
 export async function listReservations(
-  filters: ListFilters
+  filters: AdminFilters
 ): Promise<ReservationWithRoom[]> {
   await ensureAdmin();
-  return listReservationsRecord(filters);
+  return getAdminReservations(filters);
 }
 
 export async function getDashboardMetrics() {
   await ensureAdmin();
-  return dashboardCounts();
+  return getDashboardMetricsApi();
 }

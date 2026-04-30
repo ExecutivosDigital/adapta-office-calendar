@@ -14,7 +14,6 @@ import { SummaryBar } from "./mobile/summary-bar";
 import { StickyCta } from "./mobile/sticky-cta";
 import { getTakenSlots } from "@/server/actions/rooms";
 import { buildSlotList, todayISO } from "@/lib/time-slots";
-import { saveLocalReservation } from "@/lib/local-reservations";
 import { cn } from "@/lib/utils";
 import type { Room, Slot } from "@/types";
 
@@ -28,7 +27,7 @@ type SuccessData = {
   companyName: string;
 };
 
-export function ReservationFlow({ rooms }: { rooms: Room[] }) {
+export function ReservationFlow({ rooms, initialName, initialPhone }: { rooms: Room[]; initialName?: string; initialPhone?: string }) {
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [date, setDate] = useState<string>(todayISO());
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -140,23 +139,11 @@ export function ReservationFlow({ rooms }: { rooms: Room[] }) {
           room={selectedRoom}
           date={date}
           startTime={selectedSlot}
+          initialName={initialName}
+          initialPhone={initialPhone}
           onSuccess={(data) => {
             if (!selectedSlot) return;
             const endTime = addOneHour(selectedSlot);
-            saveLocalReservation({
-              id: data.reservation_id,
-              room_id: selectedRoom.id,
-              room_name: selectedRoom.name,
-              reservation_date: date,
-              start_time: selectedSlot,
-              end_time: endTime,
-              customer_name: data.customer_name,
-              customer_phone: data.customer_phone,
-              company_name: data.company_name,
-              people_count: data.people_count,
-              status: "confirmed",
-              created_at: new Date().toISOString(),
-            });
             setSuccess({
               reservation_id: data.reservation_id,
               roomName: selectedRoom.name,

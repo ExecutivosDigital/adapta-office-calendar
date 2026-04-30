@@ -27,6 +27,8 @@ export function ReservationModal({
   room,
   date,
   startTime,
+  initialName,
+  initialPhone,
   onSuccess,
 }: {
   open: boolean;
@@ -34,6 +36,8 @@ export function ReservationModal({
   room: Room | null;
   date: string;
   startTime: string | null;
+  initialName?: string;
+  initialPhone?: string;
   onSuccess: (data: {
     reservation_id: string;
     customer_name: string;
@@ -46,8 +50,8 @@ export function ReservationModal({
   const [serverError, setServerError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<Field, string>>>({});
 
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
+  const [customerName, setCustomerName] = useState(initialName ?? "");
+  const [customerPhone, setCustomerPhone] = useState(initialPhone ? formatPhone(initialPhone) : "");
   const [companyName, setCompanyName] = useState("");
   const [peopleCount, setPeopleCount] = useState<string>("1");
 

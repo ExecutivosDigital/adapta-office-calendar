@@ -8,8 +8,10 @@ import {
   CalendarClock,
   CalendarX2,
   CheckCircle2,
+  DoorOpen,
   LogOut,
 } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { MetricCard } from "@/components/admin/metric-card";
 import { AdminFilters } from "@/components/admin/filters";
@@ -62,12 +64,20 @@ export function DashboardClient({
               <p className="text-xs text-stone-500">Painel administrativo</p>
             </div>
           </div>
-          <form action={signOutAdmin}>
-            <Button variant="ghost" size="sm" type="submit">
-              <LogOut className="mr-2 h-4 w-4" />
-              Sair
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/admin/rooms">
+                <DoorOpen className="mr-2 h-4 w-4" />
+                Salas
+              </Link>
             </Button>
-          </form>
+            <form action={signOutAdmin}>
+              <Button variant="ghost" size="sm" type="submit">
+                <LogOut className="mr-2 h-4 w-4" />
+                Sair
+              </Button>
+            </form>
+          </div>
         </div>
       </header>
 
