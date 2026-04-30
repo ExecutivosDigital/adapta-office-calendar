@@ -155,8 +155,23 @@ export async function cancelMyReservationApi(reservationId: string): Promise<voi
 }
 
 // ---------------------------------------------------------------------------
-// Auth (customer) — server-side check only; login/check done client-side
+// Auth (customer)
 // ---------------------------------------------------------------------------
+
+export async function checkPhoneApi(phone: string): Promise<{ exists: boolean }> {
+  return apiFetch<{ exists: boolean }>(`/auth/phone/check?phone=${encodeURIComponent(phone)}`);
+}
+
+export async function loginByPhoneApi(phone: string, name?: string): Promise<void> {
+  await apiFetch<unknown>("/auth/phone", {
+    method: "POST",
+    body: JSON.stringify(name ? { phone, name } : { phone }),
+  });
+}
+
+export async function logoutPhoneApi(): Promise<void> {
+  await apiFetch<unknown>("/auth/phone/logout", { method: "POST" });
+}
 
 export async function getPhoneMe(): Promise<{ phone: string; name: string } | null> {
   try {

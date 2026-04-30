@@ -1,15 +1,15 @@
 "use client";
 
+import { cn } from "@/lib/utils";
+import { CalendarDays, ListChecks, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, ListChecks, MessageCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 const WA_NUMBER = (
-  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "5511999999999"
+  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "555187894164"
 ).replace(/\D/g, "");
 const WA_HREF = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(
-  "Olá! Gostaria de falar sobre uma reserva na Adapta Offices."
+  "Olá! Gostaria de falar sobre uma reserva na Adapta Offices.",
 )}`;
 
 export function BottomNav() {
@@ -18,7 +18,8 @@ export function BottomNav() {
   // Hide on admin routes
   if (pathname.startsWith("/admin")) return null;
 
-  const isAgendamentos = pathname === "/" || pathname.startsWith("/agendamento");
+  const isAgendamentos =
+    pathname === "/" || pathname.startsWith("/agendamento");
   const isReservas = pathname.startsWith("/reservas");
 
   return (
@@ -70,7 +71,7 @@ function NavItem({
     "relative flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium transition-colors",
     active && tone !== "whatsapp" && "text-brand-600",
     !active && tone !== "whatsapp" && "text-stone-500 hover:text-stone-800",
-    tone === "whatsapp" && "text-emerald-600 hover:text-emerald-700"
+    tone === "whatsapp" && "text-emerald-600 hover:text-emerald-700",
   );
 
   const content = (
@@ -78,9 +79,11 @@ function NavItem({
       <span
         className={cn(
           "flex h-9 w-9 items-center justify-center rounded-xl transition-all",
-          active && tone !== "whatsapp" && "bg-brand-gradient text-white shadow-brand-glow",
+          active &&
+            tone !== "whatsapp" &&
+            "bg-brand-gradient text-white shadow-brand-glow",
           !active && tone !== "whatsapp" && "bg-stone-100/60",
-          tone === "whatsapp" && "bg-emerald-100"
+          tone === "whatsapp" && "bg-emerald-100",
         )}
       >
         {icon}

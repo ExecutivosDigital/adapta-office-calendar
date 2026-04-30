@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatPhone } from "@/lib/utils";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
+import { checkPhone, loginByPhone } from "@/server/actions/auth";
 
 export function PhoneLoginForm({ returnUrl }: { returnUrl: string }) {
   const router = useRouter();
@@ -31,26 +30,12 @@ export function PhoneLoginForm({ returnUrl }: { returnUrl: string }) {
 
     setIsPending(true);
     try {
-      const checkRes = await fetch(
-        `${API_URL}/auth/phone/check?phone=${digits}`,
-        { credentials: "include" }
-      );
-      if (!checkRes.ok) {
-        setError("Erro ao verificar telefone. Tente novamente.");
-        return;
-      }
-      const { exists } = (await checkRes.json()) as { exists: boolean };
+      const { exists } = await checkPhone(digits);
 
       if (exists) {
-        const loginRes = await fetch(`${API_URL}/auth/phone`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ phone: digits }),
-        });
-        if (!loginRes.ok) {
-          const body = (await loginRes.json().catch(() => ({}))) as { error?: string };
-          setError(body.error ?? "Erro ao entrar. Tente novamente.");
+        const result = await loginByPhone(digits);
+        if (!result.ok) {
+          setError(result.error);
           return;
         }
         router.push(returnUrl);
@@ -76,19 +61,11 @@ export function PhoneLoginForm({ returnUrl }: { returnUrl: string }) {
 
     setIsPending(true);
     try {
-      const res = await fetch(`${API_URL}/auth/phone`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ phone: digits, name: name.trim() }),
-      });
-
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(body.error ?? "Erro ao entrar. Tente novamente.");
+      const result = await loginByPhone(digits, name.trim());
+      if (!result.ok) {
+        setError(result.error);
         return;
       }
-
       router.push(returnUrl);
       router.refresh();
     } catch {
