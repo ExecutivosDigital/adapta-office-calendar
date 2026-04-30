@@ -19,7 +19,7 @@ import { formatPhone } from "@/lib/utils";
 import { createReservation } from "@/server/actions/reservations";
 import type { Room } from "@/types";
 
-type Field = "customer_name" | "customer_phone" | "company_name" | "people_count";
+type Field = "customer_name" | "customer_phone" | "company_name";
 
 export function ReservationModal({
   open,
@@ -53,7 +53,6 @@ export function ReservationModal({
   const [customerName, setCustomerName] = useState(initialName ?? "");
   const [customerPhone, setCustomerPhone] = useState(initialPhone ? formatPhone(initialPhone) : "");
   const [companyName, setCompanyName] = useState("");
-  const [peopleCount, setPeopleCount] = useState<string>("1");
 
   // Reset state quando o modal reabre
   useEffect(() => {
@@ -69,7 +68,6 @@ export function ReservationModal({
   function validate(): {
     ok: boolean;
     errors: Partial<Record<Field, string>>;
-    parsedPeople: number;
   } {
     const errors: Partial<Record<Field, string>> = {};
     if (customerName.trim().length < 2)
@@ -78,12 +76,7 @@ export function ReservationModal({
     if (phoneDigits.length < 10)
       errors.customer_phone = "Telefone inválido — inclua DDD + número.";
     if (companyName.trim().length < 2) errors.company_name = "Informe a empresa.";
-    const parsedPeople = Number(peopleCount);
-    if (!Number.isInteger(parsedPeople) || parsedPeople < 1)
-      errors.people_count = "Informe um número inteiro a partir de 1.";
-    else if (parsedPeople > room!.capacity)
-      errors.people_count = `Capacidade máxima: ${room!.capacity}.`;
-    return { ok: Object.keys(errors).length === 0, errors, parsedPeople };
+    return { ok: Object.keys(errors).length === 0, errors };
   }
 
   async function handleConfirm() {
@@ -106,7 +99,7 @@ export function ReservationModal({
       customer_name: customerName.trim(),
       customer_phone: customerPhone.trim(),
       company_name: companyName.trim(),
-      people_count: v.parsedPeople,
+      people_count: room!.capacity,
     };
 
     console.log("[reservation-modal] enviando payload", payload);
@@ -131,7 +124,6 @@ export function ReservationModal({
         setCustomerName("");
         setCustomerPhone("");
         setCompanyName("");
-        setPeopleCount("1");
         onOpenChange(false);
         onSuccess({
           reservation_id: res.data.id,
@@ -232,26 +224,6 @@ export function ReservationModal({
             />
             {fieldErrors.company_name && (
               <p className="text-xs text-red-600">{fieldErrors.company_name}</p>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="people_count">Quantidade de pessoas</Label>
-            <Input
-              id="people_count"
-              type="number"
-              min={1}
-              max={room.capacity}
-              inputMode="numeric"
-              value={peopleCount}
-              onChange={(e) => setPeopleCount(e.target.value)}
-              disabled={isPending}
-            />
-            <p className="text-xs text-stone-500">
-              Capacidade máxima: {room.capacity}
-            </p>
-            {fieldErrors.people_count && (
-              <p className="text-xs text-red-600">{fieldErrors.people_count}</p>
             )}
           </div>
 
