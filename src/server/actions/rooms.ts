@@ -34,8 +34,10 @@ export async function getTakenSlots(
   dateISO: string
 ): Promise<TakenSlotInfo[]> {
   const slots = await getSlots(roomId, dateISO);
+  // Filter on bookedBy, not status: a slot the API classifies as "past"
+  // (e.g. due to server clock skew) is still a real booking.
   return slots
-    .filter((s) => s.status === "unavailable")
+    .filter((s) => Boolean(s.bookedBy))
     .map((s) => ({
       startTime: s.start,
       customerName: s.bookedBy ?? "",

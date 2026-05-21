@@ -54,11 +54,11 @@ export function buildSlotList(
     let status: SlotStatus = "available";
     let bookedBy: string | undefined;
     const hit = takenMap.get(start) ?? takenMap.get(start + ":00");
-    if (hit) {
+    if (isPastSlot(dateISO, start)) {
+      status = "past";
+    } else if (hit) {
       status = "unavailable";
       bookedBy = hit;
-    } else if (isPastSlot(dateISO, start)) {
-      status = "past";
     }
     return { start, end, status, bookedBy };
   });
