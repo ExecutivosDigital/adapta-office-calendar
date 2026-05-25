@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { CheckCircle2, Home, Plus, Trash2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,6 +16,7 @@ export function SuccessState({
   customerName,
   companyName,
   onNewReservation,
+  onBackToHome,
   onCancelled,
 }: {
   reservationId: string;
@@ -27,9 +27,9 @@ export function SuccessState({
   customerName: string;
   companyName: string;
   onNewReservation: () => void;
+  onBackToHome: () => void;
   onCancelled: () => void;
 }) {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [confirmingCancel, setConfirmingCancel] = useState(false);
 
@@ -106,7 +106,7 @@ export function SuccessState({
 
       <div className="flex flex-col gap-2.5">
         <Button
-          onClick={() => router.push("/")}
+          onClick={onBackToHome}
           className="tap-scale h-12 w-full bg-brand-gradient text-base font-semibold shadow-brand-glow hover:bg-brand-gradient hover:shadow-brand-glow-lg"
           disabled={isPending}
         >

@@ -1,6 +1,7 @@
 "use client";
 
 import { Clock } from "lucide-react";
+import { addSlotMinutes, formatSlotDuration } from "@/lib/time-slots";
 
 const MONTHS_SHORT = [
   "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
@@ -10,13 +11,6 @@ const MONTHS_SHORT = [
 function formatShort(iso: string): string {
   const [, m, d] = iso.split("-").map(Number);
   return `${d.toString().padStart(2, "0")} ${MONTHS_SHORT[m - 1]}`;
-}
-
-function addOneHour(start: string) {
-  const [h, m] = start.split(":").map(Number);
-  const total = h * 60 + m + 60;
-  const pad = (n: number) => n.toString().padStart(2, "0");
-  return `${pad(Math.floor(total / 60))}:${pad(total % 60)}`;
 }
 
 export function SummaryBar({
@@ -37,7 +31,7 @@ export function SummaryBar({
           </p>
           <p className="mt-1 truncate text-base font-semibold text-stone-900">
             {hasSelection
-              ? `${formatShort(date)}, ${startTime} — ${addOneHour(startTime!)}`
+              ? `${formatShort(date)}, ${startTime} — ${addSlotMinutes(startTime!)}`
               : "Selecione um horário acima"}
           </p>
         </div>
@@ -47,7 +41,7 @@ export function SummaryBar({
           </p>
           <p className="mt-1 flex items-center justify-end gap-1 font-display text-xl font-bold text-brand-600">
             <Clock className="h-4 w-4" />
-            1h
+            {formatSlotDuration()}
           </p>
         </div>
       </div>

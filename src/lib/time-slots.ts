@@ -95,3 +95,13 @@ export function normalizeTime(value: string): string {
   // accepts "HH:mm" or "HH:mm:ss" and returns "HH:mm"
   return value.length >= 5 ? value.slice(0, 5) : value;
 }
+
+export function addSlotMinutes(start: string): string {
+  return fromMinutes(toMinutes(start) + PUBLIC_CONFIG.slotMinutes);
+}
+
+export function formatSlotDuration(minutes: number = PUBLIC_CONFIG.slotMinutes): string {
+  if (minutes < 60) return `${minutes} min`;
+  if (minutes % 60 === 0) return `${minutes / 60}h`;
+  return `${Math.floor(minutes / 60)}h${minutes % 60}`;
+}

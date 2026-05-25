@@ -13,7 +13,7 @@ import { PillSlots } from "./mobile/pill-slots";
 import { SummaryBar } from "./mobile/summary-bar";
 import { StickyCta } from "./mobile/sticky-cta";
 import { getTakenSlots } from "@/server/actions/rooms";
-import { buildSlotList, todayISO } from "@/lib/time-slots";
+import { addSlotMinutes, buildSlotList, todayISO } from "@/lib/time-slots";
 import { cn } from "@/lib/utils";
 import type { Room, Slot } from "@/types";
 
@@ -84,6 +84,11 @@ export function ReservationFlow({ rooms, initialName, initialPhone }: { rooms: R
               setSelectedRoom(null);
               setSelectedSlot(null);
             }}
+            onBackToHome={() => {
+              setSuccess(null);
+              setSelectedRoom(null);
+              setSelectedSlot(null);
+            }}
             onCancelled={() => {
               setSuccess(null);
               setSelectedRoom(null);
@@ -143,7 +148,7 @@ export function ReservationFlow({ rooms, initialName, initialPhone }: { rooms: R
           initialPhone={initialPhone}
           onSuccess={(data) => {
             if (!selectedSlot) return;
-            const endTime = addOneHour(selectedSlot);
+            const endTime = addSlotMinutes(selectedSlot);
             setSuccess({
               reservation_id: data.reservation_id,
               roomName: selectedRoom.name,
@@ -260,13 +265,6 @@ export function ReservationFlow({ rooms, initialName, initialPhone }: { rooms: R
       </main>
     </div>
   );
-}
-
-function addOneHour(start: string) {
-  const [h, m] = start.split(":").map(Number);
-  const total = h * 60 + m + 60;
-  const pad = (n: number) => n.toString().padStart(2, "0");
-  return `${pad(Math.floor(total / 60))}:${pad(total % 60)}`;
 }
 
 // Keep next/image import compatible even though we use plain <img>.

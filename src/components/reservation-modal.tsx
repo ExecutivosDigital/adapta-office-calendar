@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatDateLong, normalizeTime } from "@/lib/time-slots";
+import { addSlotMinutes, formatDateLong, normalizeTime } from "@/lib/time-slots";
 import { formatPhone } from "@/lib/utils";
 import { createReservation } from "@/server/actions/reservations";
 import type { Room } from "@/types";
@@ -166,7 +166,7 @@ export function ReservationModal({
           <div className="flex items-center gap-2 text-stone-700">
             <Clock className="h-4 w-4 text-brand-600" />
             <span>
-              {startTime} — {addOneHour(startTime)}
+              {startTime} — {addSlotMinutes(startTime)}
             </span>
           </div>
           <div className="flex items-center gap-2 text-stone-500 text-xs">
@@ -257,11 +257,4 @@ export function ReservationModal({
       </DialogContent>
     </Dialog>
   );
-}
-
-function addOneHour(start: string) {
-  const [h, m] = start.split(":").map(Number);
-  const total = h * 60 + m + 60;
-  const pad = (n: number) => n.toString().padStart(2, "0");
-  return `${pad(Math.floor(total / 60))}:${pad(total % 60)}`;
 }
