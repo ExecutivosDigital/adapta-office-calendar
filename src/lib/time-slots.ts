@@ -35,7 +35,7 @@ export function isPastDate(dateISO: string): boolean {
   return dateISO < todayISO;
 }
 
-function isPastSlot(dateISO: string, startHHmm: string): boolean {
+function isPastSlot(dateISO: string, endHHmm: string): boolean {
   const now = new Date();
   const todayISO = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
     now.getDate()
@@ -43,7 +43,7 @@ function isPastSlot(dateISO: string, startHHmm: string): boolean {
   if (dateISO > todayISO) return false;
   if (dateISO < todayISO) return true;
   const nowMins = now.getHours() * 60 + now.getMinutes();
-  return toMinutes(startHHmm) <= nowMins;
+  return toMinutes(endHHmm) <= nowMins;
 }
 
 export function buildSlotList(
@@ -54,13 +54,13 @@ export function buildSlotList(
     let status: SlotStatus = "available";
     let bookedBy: string | undefined;
     const hit = takenMap.get(start) ?? takenMap.get(start + ":00");
-    if (isPastSlot(dateISO, start)) {
+    if (isPastSlot(dateISO, end)) {
       status = "past";
     } else if (hit) {
       status = "unavailable";
       bookedBy = hit;
     }
-    return { start, end, status, bookedBy };
+    return { baseStart: start, start, end, status, bookedBy };
   });
 }
 
@@ -104,4 +104,12 @@ export function formatSlotDuration(minutes: number = PUBLIC_CONFIG.slotMinutes):
   if (minutes < 60) return `${minutes} min`;
   if (minutes % 60 === 0) return `${minutes / 60}h`;
   return `${Math.floor(minutes / 60)}h${minutes % 60}`;
+}
+
+export function durationMinutes(start: string, end: string): number {
+  return Math.max(0, toMinutes(end) - toMinutes(start));
+}
+
+export function selectionCount(slotCount: number, start: string, end: string): number {
+  return Math.max(1, slotCount, Math.ceil(durationMinutes(start, end) / PUBLIC_CONFIG.slotMinutes));
 }

@@ -10,7 +10,6 @@ import {
   Clock,
   LogOut,
   MapPin,
-  Phone,
   Users,
   XCircle,
 } from "lucide-react";
@@ -20,10 +19,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDateLong, normalizeTime } from "@/lib/time-slots";
 import { cancelReservationByCustomer } from "@/server/actions/reservations";
+import { logoutAccount } from "@/server/actions/auth";
 import { cn } from "@/lib/utils";
 import type { ReservationWithRoom } from "@/types";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 
 export function ReservasClient({
   initialReservations,
@@ -36,14 +34,7 @@ export function ReservasClient({
 
   async function handleLogout() {
     setIsLoggingOut(true);
-    try {
-      await fetch(`${API_URL}/auth/phone/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-    } catch {
-      // best-effort
-    }
+    await logoutAccount();
     router.push("/login");
     router.refresh();
   }
@@ -115,7 +106,7 @@ export function ReservasClient({
             disabled={isLoggingOut}
           >
             <LogOut className="mr-1.5 h-3.5 w-3.5" />
-            {isLoggingOut ? "Saindo..." : "Usar outro telefone"}
+            {isLoggingOut ? "Saindo..." : "Sair da conta"}
           </Button>
         </div>
       </main>
@@ -187,7 +178,6 @@ function Card({
         <Item icon={Users} text={`${item.people_count} pessoas`} />
         <Item icon={Building2} text={item.company_name} />
         <Item icon={MapPin} text={item.customer_name} />
-        <Item icon={Phone} text={item.customer_phone} />
       </dl>
 
       {!isCancelled && (

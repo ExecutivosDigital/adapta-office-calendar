@@ -5,24 +5,10 @@ export const reservationSchema = z.object({
   date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida"),
-  start_time: z
-    .string()
-    .regex(/^\d{2}:\d{2}$/, "Horário inválido"),
-  customer_name: z
-    .string()
-    .trim()
-    .min(2, "Informe seu nome completo")
-    .max(120, "Nome muito longo"),
-  customer_phone: z
-    .string()
-    .trim()
-    .min(8, "Telefone inválido")
-    .max(20, "Telefone inválido"),
-  company_name: z
-    .string()
-    .trim()
-    .min(2, "Informe a empresa")
-    .max(120, "Nome muito longo"),
+  slot_starts: z
+    .array(z.string().regex(/^\d{2}:\d{2}$/, "Horário inválido"))
+    .min(1, "Selecione um horário")
+    .max(2, "Selecione no máximo dois horários"),
   people_count: z
     .number({ invalid_type_error: "Informe um número" })
     .int("Use um número inteiro")

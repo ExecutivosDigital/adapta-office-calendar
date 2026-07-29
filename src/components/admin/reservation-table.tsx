@@ -2,7 +2,8 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatDateShort, normalizeTime } from "@/lib/time-slots";
+import Link from "next/link";
+import { formatDateShort, formatSlotDuration, normalizeTime, durationMinutes, selectionCount } from "@/lib/time-slots";
 import type { ReservationWithRoom } from "@/types";
 
 export function ReservationTable({
@@ -19,10 +20,8 @@ export function ReservationTable({
           <tr>
             <th className="px-4 py-3 font-medium">Data / Horário</th>
             <th className="px-4 py-3 font-medium">Sala</th>
-            <th className="px-4 py-3 font-medium">Cliente</th>
-            <th className="px-4 py-3 font-medium">Empresa</th>
-            <th className="px-4 py-3 font-medium">Pessoas</th>
-            <th className="px-4 py-3 font-medium">Telefone</th>
+            <th className="px-4 py-3 font-medium">Conta / quem marcou</th>
+            <th className="px-4 py-3 font-medium">Uso</th>
             <th className="px-4 py-3 font-medium">Status</th>
             <th className="px-4 py-3 font-medium" />
           </tr>
@@ -39,16 +38,39 @@ export function ReservationTable({
                 </div>
               </td>
               <td className="px-4 py-3 text-stone-800">{r.room.name}</td>
-              <td className="px-4 py-3 text-stone-800">{r.customer_name}</td>
-              <td className="px-4 py-3 text-stone-700">{r.company_name}</td>
-              <td className="px-4 py-3 text-stone-700">{r.people_count}</td>
-              <td className="px-4 py-3 text-stone-700">{r.customer_phone}</td>
+              <td className="px-4 py-3 text-stone-800">
+                <div className="font-medium">{r.user_id ? <Link className="hover:text-brand-700 hover:underline" href={`/admin/usuarios/${r.user_id}`}>{r.customer_name}</Link> : r.customer_name}</div>
+                <div className="text-xs text-stone-500">{r.company_name}</div>
+                <div className="text-xs text-stone-400">
+                  Login/CPF: {r.user?.cpf ?? "não vinculado"}
+                </div>
+                <div className="text-[11px] text-stone-400">
+                  Marcada em {formatDateTime(r.created_at)}
+                </div>
+              </td>
+              <td className="px-4 py-3 text-stone-700">
+                <div className="font-medium">
+                  {selectionCount(r.slot_count, r.start_time, r.end_time)} seleção(ões)
+                </div>
+                <div className="text-xs text-stone-500">
+                  {formatSlotDuration(durationMinutes(r.start_time, r.end_time))}
+                </div>
+                <div className="text-xs text-stone-400">
+                  {r.people_count} pessoa(s)
+                </div>
+              </td>
               <td className="px-4 py-3">
                 <Badge
                   variant={r.status === "confirmed" ? "confirmed" : "cancelled"}
                 >
                   {r.status === "confirmed" ? "Confirmada" : "Cancelada"}
                 </Badge>
+                {r.status === "cancelled" && (
+                  <div className="mt-1 text-[11px] text-stone-500">
+                    Por: {r.cancelledByUser?.name ?? r.cancelled_by ?? "—"}
+                    {r.cancelled_at ? ` · ${formatDateTime(r.cancelled_at)}` : ""}
+                  </div>
+                )}
               </td>
               <td className="px-4 py-3 text-right">
                 {r.status === "confirmed" && (
@@ -67,4 +89,11 @@ export function ReservationTable({
       </table>
     </div>
   );
+}
+
+function formatDateTime(value: string) {
+  return new Date(value).toLocaleString("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
 }

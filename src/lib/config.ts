@@ -11,7 +11,7 @@ export const config = {
   opening: clean(process.env.NEXT_PUBLIC_OPENING_TIME, "08:00"),
   closing: clean(process.env.NEXT_PUBLIC_CLOSING_TIME, "18:00"),
   slotMinutes: parseInt(
-    clean(process.env.NEXT_PUBLIC_SLOT_MINUTES, "60"),
+    clean(process.env.NEXT_PUBLIC_SLOT_MINUTES, "30"),
     10
   ),
   openWeekdays: clean(process.env.NEXT_PUBLIC_OPEN_WEEKDAYS, "1,2,3,4,5")

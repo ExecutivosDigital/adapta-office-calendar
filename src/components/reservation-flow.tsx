@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { ArrowRight, MapPin, Users } from "lucide-react";
 import { Header } from "./header";
@@ -12,10 +12,10 @@ import { MonthDateSelector } from "./mobile/month-date-selector";
 import { PillSlots } from "./mobile/pill-slots";
 import { SummaryBar } from "./mobile/summary-bar";
 import { StickyCta } from "./mobile/sticky-cta";
-import { getTakenSlots } from "@/server/actions/rooms";
-import { addSlotMinutes, buildSlotList, todayISO } from "@/lib/time-slots";
+import { getRoomSlots } from "@/server/actions/rooms";
+import { todayISO } from "@/lib/time-slots";
 import { cn } from "@/lib/utils";
-import type { Room, Slot } from "@/types";
+import type { CurrentUser, Room, Slot } from "@/types";
 
 type SuccessData = {
   reservation_id: string;
@@ -27,34 +27,101 @@ type SuccessData = {
   companyName: string;
 };
 
-export function ReservationFlow({ rooms, initialName, initialPhone }: { rooms: Room[]; initialName?: string; initialPhone?: string }) {
+export function ReservationFlow({
+  rooms,
+  currentUser,
+}: {
+  rooms: Room[];
+  currentUser: CurrentUser;
+}) {
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [date, setDate] = useState<string>(todayISO());
   const [slots, setSlots] = useState<Slot[]>([]);
-  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [selectedSlotKeys, setSelectedSlotKeys] = useState<string[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [loadingSlots, startSlotsTransition] = useTransition();
+  const [loadingSlots, setLoadingSlots] = useState(false);
   const [success, setSuccess] = useState<SuccessData | null>(null);
 
   useEffect(() => {
+    setSelectedSlotKeys([]);
     if (!selectedRoom) {
       setSlots([]);
       return;
     }
-    startSlotsTransition(async () => {
-      console.log("[reservation-flow] fetching taken slots", {
-        roomId: selectedRoom.id,
-        date,
-      });
-      const taken = await getTakenSlots(selectedRoom.id, date);
-      console.log("[reservation-flow] taken slots received", taken);
-      const map = new Map(taken.map((t) => [t.startTime, t.customerName]));
-      const built = buildSlotList(date, map);
-      console.log("[reservation-flow] slot list built", built);
-      setSlots(built);
-      setSelectedSlot(null);
-    });
+
+    let cancelled = false;
+    let intervalId: ReturnType<typeof setInterval> | undefined;
+    setLoadingSlots(true);
+
+    async function refreshSlots() {
+      try {
+        const nextSlots = await getRoomSlots(selectedRoom!.id, date);
+        if (cancelled) return;
+        setSlots(nextSlots);
+        setSelectedSlotKeys((selected) =>
+          selected.filter((baseStart) =>
+            nextSlots.some(
+              (slot) =>
+                slot.baseStart === baseStart && slot.status === "available"
+            )
+          )
+        );
+      } catch {
+        // Mantém a última lista visível; a próxima atualização tenta novamente.
+      } finally {
+        if (!cancelled) setLoadingSlots(false);
+      }
+    }
+
+    void refreshSlots();
+
+    // Alinha a atualização à virada do minuto para o horário corrente, como
+    // 12:43, mudar na tela exatamente quando o relógio passar para 12:44.
+    const nextMinuteDelay = 60_000 - (Date.now() % 60_000) + 100;
+    const timeoutId = setTimeout(() => {
+      void refreshSlots();
+      intervalId = setInterval(() => void refreshSlots(), 60_000);
+    }, nextMinuteDelay);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [selectedRoom, date]);
+
+  const selectedSlots = useMemo(
+    () =>
+      selectedSlotKeys
+        .map((key) => slots.find((slot) => slot.baseStart === key))
+        .filter((slot): slot is Slot => Boolean(slot)),
+    [selectedSlotKeys, slots]
+  );
+  const selectedStartTime = selectedSlots[0]?.start ?? null;
+  const selectedEndTime = selectedSlots.at(-1)?.end ?? null;
+
+  function handleSlotSelect(baseStart: string) {
+    setSelectedSlotKeys((selected) => {
+      if (selected.includes(baseStart)) {
+        return selected.filter((key) => key !== baseStart);
+      }
+
+      if (selected.length !== 1) return [baseStart];
+
+      const firstIndex = slots.findIndex(
+        (slot) => slot.baseStart === selected[0]
+      );
+      const nextIndex = slots.findIndex((slot) => slot.baseStart === baseStart);
+
+      if (Math.abs(firstIndex - nextIndex) !== 1) {
+        return [baseStart];
+      }
+
+      return firstIndex < nextIndex
+        ? [selected[0], baseStart]
+        : [baseStart, selected[0]];
+    });
+  }
 
   // -----------------------------------------------------------------------
   // SUCCESS SCREEN
@@ -67,7 +134,7 @@ export function ReservationFlow({ rooms, initialName, initialPhone }: { rooms: R
           onBack={() => {
             setSuccess(null);
             setSelectedRoom(null);
-            setSelectedSlot(null);
+            setSelectedSlotKeys([]);
           }}
         />
         <main className="container py-8">
@@ -82,17 +149,17 @@ export function ReservationFlow({ rooms, initialName, initialPhone }: { rooms: R
             onNewReservation={() => {
               setSuccess(null);
               setSelectedRoom(null);
-              setSelectedSlot(null);
+              setSelectedSlotKeys([]);
             }}
             onBackToHome={() => {
               setSuccess(null);
               setSelectedRoom(null);
-              setSelectedSlot(null);
+              setSelectedSlotKeys([]);
             }}
             onCancelled={() => {
               setSuccess(null);
               setSelectedRoom(null);
-              setSelectedSlot(null);
+              setSelectedSlotKeys([]);
             }}
           />
         </main>
@@ -110,7 +177,7 @@ export function ReservationFlow({ rooms, initialName, initialPhone }: { rooms: R
           title="RESERVAR SALA"
           onBack={() => {
             setSelectedRoom(null);
-            setSelectedSlot(null);
+            setSelectedSlotKeys([]);
           }}
         />
 
@@ -121,12 +188,16 @@ export function ReservationFlow({ rooms, initialName, initialPhone }: { rooms: R
 
           <PillSlots
             slots={slots}
-            selected={selectedSlot}
-            onSelect={(s) => setSelectedSlot(s)}
+            selected={selectedSlotKeys}
+            onSelect={handleSlotSelect}
             loading={loadingSlots}
           />
 
-          <SummaryBar date={date} startTime={selectedSlot} />
+          <SummaryBar
+            date={date}
+            startTime={selectedStartTime}
+            endTime={selectedEndTime}
+          />
         </main>
 
         {/* Spacer so content above the sticky CTA never gets cut */}
@@ -134,7 +205,7 @@ export function ReservationFlow({ rooms, initialName, initialPhone }: { rooms: R
 
         <StickyCta
           label="Confirmar horário"
-          disabled={!selectedSlot}
+          disabled={selectedSlotKeys.length === 0}
           onClick={() => setModalOpen(true)}
         />
 
@@ -143,26 +214,22 @@ export function ReservationFlow({ rooms, initialName, initialPhone }: { rooms: R
           onOpenChange={(o) => setModalOpen(o)}
           room={selectedRoom}
           date={date}
-          startTime={selectedSlot}
-          initialName={initialName}
-          initialPhone={initialPhone}
+          slotStarts={selectedSlotKeys}
+          startTime={selectedStartTime}
+          endTime={selectedEndTime}
+          currentUser={currentUser}
           onSuccess={(data) => {
-            if (!selectedSlot) return;
-            const endTime = addSlotMinutes(selectedSlot);
             setSuccess({
-              reservation_id: data.reservation_id,
+              reservation_id: data.id,
               roomName: selectedRoom.name,
               date,
-              startTime: selectedSlot,
-              endTime,
+              startTime: data.start_time,
+              endTime: data.end_time,
               customerName: data.customer_name,
               companyName: data.company_name,
             });
-            startSlotsTransition(async () => {
-              const taken = await getTakenSlots(selectedRoom.id, date);
-              const map = new Map(taken.map((t) => [t.startTime, t.customerName]));
-              setSlots(buildSlotList(date, map));
-            });
+            setSelectedSlotKeys([]);
+            void getRoomSlots(selectedRoom.id, date).then(setSlots);
           }}
         />
       </div>

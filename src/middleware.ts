@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { ADMIN_COOKIE } from "@/lib/admin-auth";
 
-const PHONE_COOKIE = "adapta_phone";
+const USER_COOKIE = "adapta_user";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -26,22 +26,14 @@ export function middleware(request: NextRequest) {
   }
 
   // ── Customer reservations ─────────────────────────────────────────────────
-  const phoneCookie = request.cookies.get(PHONE_COOKIE)?.value;
-  const isPhoneLoggedIn = typeof phoneCookie === "string" && phoneCookie.length > 0;
+  const userCookie = request.cookies.get(USER_COOKIE)?.value;
+  const isUserLoggedIn = typeof userCookie === "string" && userCookie.length > 0;
 
   const protectedCustomer = pathname === "/" || pathname === "/reservas";
-  if (protectedCustomer && !isPhoneLoggedIn) {
+  if (protectedCustomer && !isUserLoggedIn) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("returnUrl", pathname);
-    return NextResponse.redirect(url);
-  }
-
-  if (pathname === "/login" && isPhoneLoggedIn) {
-    const returnUrl = request.nextUrl.searchParams.get("returnUrl") ?? "/";
-    const url = request.nextUrl.clone();
-    url.pathname = returnUrl;
-    url.search = "";
     return NextResponse.redirect(url);
   }
 

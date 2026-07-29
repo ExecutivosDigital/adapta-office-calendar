@@ -6,6 +6,7 @@ import {
   cancelMyReservationApi,
   cancelAdminReservationApi,
 } from "@/lib/api-client";
+import type { CreatedReservation } from "@/lib/api-client";
 import { isAdmin } from "@/lib/admin-auth";
 import { z } from "zod";
 
@@ -16,16 +17,16 @@ type ActionResult<T> =
 const reservationInputSchema = z.object({
   room_id: z.string().uuid(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  start_time: z.string().regex(/^\d{2}:\d{2}$/),
-  customer_name: z.string().trim().min(2).max(120),
-  customer_phone: z.string().trim().min(8).max(20),
-  company_name: z.string().trim().min(2).max(120),
+  slot_starts: z
+    .array(z.string().regex(/^\d{2}:\d{2}$/))
+    .min(1)
+    .max(2),
   people_count: z.number().int().min(1).max(200),
 });
 
 export async function createReservation(
   raw: unknown
-): Promise<ActionResult<{ id: string }>> {
+): Promise<ActionResult<CreatedReservation>> {
   const parsed = reservationInputSchema.safeParse(raw);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos" };
@@ -35,15 +36,14 @@ export async function createReservation(
     const result = await createReservationApi({
       room_id: parsed.data.room_id,
       date: parsed.data.date,
-      start_time: parsed.data.start_time,
-      customer_name: parsed.data.customer_name,
-      customer_phone: parsed.data.customer_phone,
-      company_name: parsed.data.company_name,
+      slot_starts: parsed.data.slot_starts,
       people_count: parsed.data.people_count,
     });
     revalidatePath("/");
+    revalidatePath("/reservas");
     revalidatePath("/admin/dashboard");
-    return { ok: true, data: { id: result.id } };
+    revalidatePath("/admin/relatorios/uso");
+    return { ok: true, data: result };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Erro ao criar reserva.";
     const code = msg.toLowerCase().includes("conflict") || msg.toLowerCase().includes("horário") ? "CONFLICT" : undefined;
@@ -64,6 +64,7 @@ export async function cancelReservation(
   try {
     await cancelAdminReservationApi(parsed.data.reservation_id);
     revalidatePath("/admin/dashboard");
+    revalidatePath("/admin/relatorios/uso");
     revalidatePath("/");
     return { ok: true, data: true };
   } catch (err) {
@@ -81,6 +82,7 @@ export async function cancelReservationByCustomer(
   try {
     await cancelMyReservationApi(parsed.data.reservation_id);
     revalidatePath("/admin/dashboard");
+    revalidatePath("/admin/relatorios/uso");
     revalidatePath("/");
     return { ok: true, data: true };
   } catch (err) {

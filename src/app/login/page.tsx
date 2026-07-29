@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 import Image from "next/image";
-import { PhoneLoginForm } from "./phone-login-form";
+import { AccountAuthForm } from "./account-auth-form";
+import { getCurrentUser } from "@/lib/api-client";
 
 export const metadata = {
   title: "Entrar · Adapta Offices",
@@ -12,9 +12,8 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ returnUrl?: string }>;
 }) {
-  const cookieStore = await cookies();
-  const phone = cookieStore.get("adapta_phone")?.value;
-  if (phone) {
+  const currentUser = await getCurrentUser();
+  if (currentUser) {
     const { returnUrl } = await searchParams;
     redirect(returnUrl ?? "/");
   }
@@ -37,12 +36,12 @@ export default async function LoginPage({
             Olá! 👋
           </h1>
           <p className="text-sm text-stone-500">
-            Informe seu telefone para acessar suas reservas.
+            Entre para reservar salas e acompanhar seus agendamentos.
           </p>
         </div>
 
         <div className="rounded-2xl border border-stone-200/70 bg-white p-6 shadow-sm">
-          <PhoneLoginForm returnUrl={returnUrl ?? "/"} />
+          <AccountAuthForm returnUrl={returnUrl ?? "/"} />
         </div>
       </div>
     </div>

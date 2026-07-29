@@ -9,13 +9,7 @@ import {
   updateRoomApi,
   toggleRoomActiveApi,
 } from "@/lib/api-client";
-import type { Room } from "@/types";
-
-export type TakenSlotInfo = {
-  startTime: string;
-  customerName: string;
-  companyName: string;
-};
+import type { Room, Slot } from "@/types";
 
 type ActionResult<T> =
   | { ok: true; data: T }
@@ -29,20 +23,11 @@ export async function getRoomById(id: string): Promise<Room | null> {
   return getRoomByIdApi(id);
 }
 
-export async function getTakenSlots(
+export async function getRoomSlots(
   roomId: string,
   dateISO: string
-): Promise<TakenSlotInfo[]> {
-  const slots = await getSlots(roomId, dateISO);
-  // Filter on bookedBy, not status: a slot the API classifies as "past"
-  // (e.g. due to server clock skew) is still a real booking.
-  return slots
-    .filter((s) => Boolean(s.bookedBy))
-    .map((s) => ({
-      startTime: s.start,
-      customerName: s.bookedBy ?? "",
-      companyName: "",
-    }));
+): Promise<Slot[]> {
+  return getSlots(roomId, dateISO);
 }
 
 export async function getAllRoomsAdmin(): Promise<Room[]> {

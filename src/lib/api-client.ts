@@ -1,8 +1,17 @@
 import "server-only";
 import { cookies } from "next/headers";
-import type { Room, Slot, Reservation, ReservationWithRoom } from "@/types";
+import type {
+  CurrentUser,
+  Room,
+  Slot,
+  Reservation,
+  ReservationWithRoom,
+  AdminUser,
+  AdminUserDetails,
+  Paginated,
+} from "@/types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3002";
 
 // ---------------------------------------------------------------------------
 // Cookie forwarding helper
@@ -132,15 +141,23 @@ export async function toggleRoomActiveApi(id: string): Promise<Room> {
 type CreateReservationPayload = {
   room_id: string;
   date: string;
+  slot_starts: string[];
+  people_count: number;
+};
+
+export type CreatedReservation = {
+  id: string;
   start_time: string;
+  end_time: string;
   customer_name: string;
-  customer_phone: string;
   company_name: string;
   people_count: number;
 };
 
-export async function createReservationApi(payload: CreateReservationPayload): Promise<{ id: string }> {
-  return apiFetch<{ id: string }>("/reservations", {
+export async function createReservationApi(
+  payload: CreateReservationPayload
+): Promise<CreatedReservation> {
+  return apiFetch<CreatedReservation>("/reservations", {
     method: "POST",
     body: JSON.stringify(payload),
   });
@@ -155,27 +172,38 @@ export async function cancelMyReservationApi(reservationId: string): Promise<voi
 }
 
 // ---------------------------------------------------------------------------
-// Auth (customer)
+// Auth (customer account)
 // ---------------------------------------------------------------------------
 
-export async function checkPhoneApi(phone: string): Promise<{ exists: boolean }> {
-  return apiFetch<{ exists: boolean }>(`/auth/phone/check?phone=${encodeURIComponent(phone)}`);
-}
-
-export async function loginByPhoneApi(phone: string, name?: string): Promise<void> {
-  await apiFetch<unknown>("/auth/phone", {
+export async function registerAccountApi(payload: {
+  name: string;
+  cpf: string;
+  company_name: string;
+  password: string;
+}): Promise<CurrentUser> {
+  return apiFetch<CurrentUser>("/auth/register", {
     method: "POST",
-    body: JSON.stringify(name ? { phone, name } : { phone }),
+    body: JSON.stringify(payload),
   });
 }
 
-export async function logoutPhoneApi(): Promise<void> {
-  await apiFetch<unknown>("/auth/phone/logout", { method: "POST" });
+export async function loginAccountApi(payload: {
+  cpf: string;
+  password: string;
+}): Promise<CurrentUser> {
+  return apiFetch<CurrentUser>("/auth/login", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
-export async function getPhoneMe(): Promise<{ phone: string; name: string } | null> {
+export async function logoutAccountApi(): Promise<void> {
+  await apiFetch<unknown>("/auth/logout", { method: "POST" });
+}
+
+export async function getCurrentUser(): Promise<CurrentUser | null> {
   try {
-    return await apiFetch<{ phone: string; name: string }>("/auth/phone/me");
+    return await apiFetch<CurrentUser>("/auth/me");
   } catch {
     return null;
   }
@@ -213,11 +241,101 @@ export async function getAdminReservations(filters: AdminFilters = {}): Promise<
 
 export async function getDashboardMetricsApi(): Promise<{
   todayCount: number;
+  todayMinutes: number;
+  todaySelections: number;
   upcomingCount: number;
   cancelledCount: number;
   activeCount: number;
 }> {
   return apiFetch("/admin/dashboard");
+}
+
+export async function getAdminUsersApi(filters: {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+} = {}): Promise<Paginated<AdminUser>> {
+  const params = new URLSearchParams();
+  if (filters.search) params.set("search", filters.search);
+  if (filters.page) params.set("page", String(filters.page));
+  if (filters.pageSize) params.set("page_size", String(filters.pageSize));
+  const query = params.toString();
+  return apiFetch<Paginated<AdminUser>>(`/admin/users${query ? `?${query}` : ""}`);
+}
+
+export async function getAdminUserApi(userId: string): Promise<AdminUserDetails> {
+  return apiFetch<AdminUserDetails>(`/admin/users/${userId}`);
+}
+
+export async function getAdminUserReservationsApi(
+  userId: string,
+  filters: { page?: number; pageSize?: number; status?: "confirmed" | "cancelled" } = {}
+): Promise<Paginated<ReservationWithRoom>> {
+  const params = new URLSearchParams();
+  if (filters.page) params.set("page", String(filters.page));
+  if (filters.pageSize) params.set("page_size", String(filters.pageSize));
+  if (filters.status) params.set("status", filters.status);
+  const query = params.toString();
+  return apiFetch<Paginated<ReservationWithRoom>>(
+    `/admin/users/${userId}/reservations${query ? `?${query}` : ""}`
+  );
+}
+
+export async function resetAdminUserPasswordApi(
+  userId: string,
+  password: string
+): Promise<void> {
+  await apiFetch<unknown>(`/admin/users/${userId}/password`, {
+    method: "PATCH",
+    body: JSON.stringify({ password }),
+  });
+}
+
+export type UsageReport = {
+  from: string | null;
+  to: string | null;
+  summary: {
+    totalReservations: number;
+    confirmedReservations: number;
+    cancelledReservations: number;
+    totalMinutesReserved: number;
+    totalMinutesUsed: number;
+    cancelledMinutes: number;
+    totalSelections: number;
+    confirmedSelections: number;
+    averageMinutes: number;
+  };
+  byRoom: Array<{
+    roomId: string;
+    roomName: string;
+    reservations: number;
+    minutes: number;
+    selections: number;
+  }>;
+  byDay: Array<{ date: string; reservations: number; minutes: number; selections: number }>;
+  byHour: Array<{ startTime: string; reservations: number; minutes: number }>;
+  byUser: Array<{
+    userId: string | null;
+    name: string;
+    cpf: string | null;
+    companyName: string;
+    reservations: number;
+    minutes: number;
+    selections: number;
+  }>;
+};
+
+export async function getUsageReportApi(filters: {
+  from?: string;
+  to?: string;
+  room_id?: string;
+} = {}): Promise<UsageReport> {
+  const params = new URLSearchParams();
+  if (filters.from) params.set("from", filters.from);
+  if (filters.to) params.set("to", filters.to);
+  if (filters.room_id) params.set("room_id", filters.room_id);
+  const query = params.toString();
+  return apiFetch<UsageReport>(`/admin/reports/usage${query ? `?${query}` : ""}`);
 }
 
 export async function cancelAdminReservationApi(reservationId: string): Promise<void> {

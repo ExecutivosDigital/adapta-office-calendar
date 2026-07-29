@@ -8,8 +8,11 @@ import {
   CalendarClock,
   CalendarX2,
   CheckCircle2,
+  BarChart3,
+  Clock3,
   DoorOpen,
   LogOut,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -20,6 +23,7 @@ import { ReservationTable } from "@/components/admin/reservation-table";
 import { CancelReservationModal } from "@/components/admin/cancel-modal";
 import { signOutAdmin } from "@/server/actions/admin";
 import type { ReservationWithRoom, Room } from "@/types";
+import { formatSlotDuration } from "@/lib/time-slots";
 
 export function DashboardClient({
   metrics,
@@ -29,6 +33,8 @@ export function DashboardClient({
 }: {
   metrics: {
     todayCount: number;
+    todayMinutes: number;
+    todaySelections: number;
     upcomingCount: number;
     cancelledCount: number;
     activeCount: number;
@@ -71,6 +77,18 @@ export function DashboardClient({
                 Salas
               </Link>
             </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/admin/relatorios/uso">
+                <BarChart3 className="mr-2 h-4 w-4" />
+                Relatórios
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/admin/usuarios">
+                <Users className="mr-2 h-4 w-4" />
+                Usuários
+              </Link>
+            </Button>
             <form action={signOutAdmin}>
               <Button variant="ghost" size="sm" type="submit">
                 <LogOut className="mr-2 h-4 w-4" />
@@ -89,7 +107,7 @@ export function DashboardClient({
           </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
           <MetricCard
             label="Hoje"
             value={metrics.todayCount}
@@ -101,6 +119,18 @@ export function DashboardClient({
             value={metrics.upcomingCount}
             icon={CalendarClock}
             tone="amber"
+          />
+          <MetricCard
+            label="Minutos usados hoje"
+            value={formatSlotDuration(metrics.todayMinutes)}
+            icon={Clock3}
+            tone="amber"
+          />
+          <MetricCard
+            label="Seleções hoje"
+            value={metrics.todaySelections}
+            icon={BarChart3}
+            tone="brand"
           />
           <MetricCard
             label="Ativas"

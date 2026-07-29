@@ -15,20 +15,21 @@ export function PillSlots({
   loading,
 }: {
   slots: Slot[];
-  selected: string | null;
-  onSelect: (start: string) => void;
+  selected: string[];
+  onSelect: (baseStart: string) => void;
   loading?: boolean;
 }) {
-  if (process.env.NODE_ENV !== "production") {
-    console.log("[pill-slots] render", { count: slots.length, selected, loading });
-  }
-
   return (
     <section className="space-y-4">
       <div className="flex items-end justify-between gap-2">
-        <h3 className="font-display text-xl font-bold text-stone-900">
-          Horários Disponíveis
-        </h3>
+        <div>
+          <h3 className="font-display text-xl font-bold text-stone-900">
+            Horários disponíveis
+          </h3>
+          <p className="mt-0.5 text-xs text-stone-500">
+            Selecione um horário ou até dois seguidos.
+          </p>
+        </div>
         {!loading && slots.length > 0 && (
           <span className="pb-0.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
             {slots.filter((s) => s.status === "available").length} livre(s)
@@ -41,7 +42,7 @@ export function PillSlots({
           {Array.from({ length: 9 }).map((_, i) => (
             <div
               key={i}
-              className="h-14 overflow-hidden rounded-2xl bg-stone-100/70"
+              className="h-20 overflow-hidden rounded-2xl bg-stone-100/70"
             >
               <div className="h-full w-full animate-shimmer" />
             </div>
@@ -52,24 +53,26 @@ export function PillSlots({
       ) : (
         <div className="grid grid-cols-3 gap-3">
           {slots.map((s, i) => {
-            const isSelected = selected === s.start;
+            const isSelected = selected.includes(s.baseStart);
             const disabled = s.status !== "available";
             const isUnavailable = s.status === "unavailable";
 
             return (
               <button
-                key={s.start}
+                key={s.baseStart}
                 type="button"
-                onClick={() => !disabled && onSelect(s.start)}
+                onClick={() => !disabled && onSelect(s.baseStart)}
                 disabled={disabled}
                 aria-pressed={isSelected}
                 aria-label={
                   isUnavailable && s.bookedBy
-                    ? `${s.start} reservado por ${s.bookedBy}`
+                    ? `${s.start} reservado por ${s.bookedBy}${
+                        s.bookedCompany ? `, da empresa ${s.bookedCompany}` : ""
+                      }`
                     : `Horário ${s.start} às ${s.end}`
                 }
                 className={cn(
-                  "group relative flex h-14 flex-col items-center justify-center rounded-2xl border-2 px-1 text-base font-semibold leading-tight transition-all duration-200 ease-out animate-slide-up",
+                  "group relative flex h-20 flex-col items-center justify-center rounded-2xl border-2 px-1 text-base font-semibold leading-tight transition-all duration-200 ease-out animate-slide-up",
                   i < 4 ? `stagger-${(i % 4) + 1}` : "",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2",
                   // selecionado
@@ -94,13 +97,20 @@ export function PillSlots({
                     className="pointer-events-none absolute inset-0 rounded-2xl animate-pulse-ring"
                   />
                 )}
-                <span className={cn(isUnavailable && "text-sm")}>
+                <span className={cn(isUnavailable && "text-xs font-medium")}>
                   {s.start}
                 </span>
                 {isUnavailable && s.bookedBy ? (
-                  <span className="mt-0.5 max-w-full truncate text-[10px] font-medium uppercase tracking-wide text-red-700/90">
-                    {firstName(s.bookedBy)}
-                  </span>
+                  <>
+                    <span className="mt-1 max-w-full truncate px-1 text-sm font-extrabold text-red-800">
+                      {firstName(s.bookedBy)}
+                    </span>
+                    {s.bookedCompany ? (
+                      <span className="mt-0.5 max-w-full truncate px-1 text-[9px] font-semibold uppercase tracking-wide text-red-700/80">
+                        {s.bookedCompany}
+                      </span>
+                    ) : null}
+                  </>
                 ) : null}
               </button>
             );

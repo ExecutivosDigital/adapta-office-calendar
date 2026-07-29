@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatDateShort, normalizeTime } from "@/lib/time-slots";
+import Link from "next/link";
+import { durationMinutes, formatDateShort, formatSlotDuration, normalizeTime, selectionCount } from "@/lib/time-slots";
 import type { ReservationWithRoom } from "@/types";
 
 export function ReservationCard({
@@ -27,7 +28,7 @@ export function ReservationCard({
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-base font-semibold text-stone-900">
-            {reservation.customer_name}
+            {reservation.user_id ? <Link className="hover:text-brand-700 hover:underline" href={`/admin/usuarios/${reservation.user_id}`}>{reservation.customer_name}</Link> : reservation.customer_name}
           </p>
           <p className="text-xs text-stone-500">{reservation.company_name}</p>
         </div>
@@ -46,9 +47,19 @@ export function ReservationCard({
             reservation.end_time
           )}`}
         />
-        <Item icon={Phone} text={reservation.customer_phone} />
+        <Item icon={Phone} text={reservation.customer_phone ?? "—"} />
         <Item icon={Building2} text={reservation.company_name} />
       </dl>
+
+      <div className="mt-3 rounded-xl bg-stone-50 px-3 py-2 text-xs text-stone-600">
+        <p>
+          Login/CPF: <span className="font-medium">{reservation.user?.cpf ?? "não vinculado"}</span>
+        </p>
+        <p className="mt-1">
+          Uso: <span className="font-medium">{selectionCount(reservation.slot_count, reservation.start_time, reservation.end_time)} seleção(ões)</span> · {formatSlotDuration(durationMinutes(reservation.start_time, reservation.end_time))}
+        </p>
+        <p className="mt-1">Marcada em {formatDateTime(reservation.created_at)}</p>
+      </div>
 
       {!isCancelled && (
         <div className="mt-4 flex justify-end">
@@ -65,11 +76,18 @@ export function ReservationCard({
       {isCancelled && reservation.cancelled_at && (
         <p className="mt-3 text-xs text-stone-400">
           Cancelada em{" "}
-          {new Date(reservation.cancelled_at).toLocaleString("pt-BR")}
+          {formatDateTime(reservation.cancelled_at)} · por {reservation.cancelledByUser?.name ?? reservation.cancelled_by ?? "—"}
         </p>
       )}
     </div>
   );
+}
+
+function formatDateTime(value: string) {
+  return new Date(value).toLocaleString("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
 }
 
 function Item({
