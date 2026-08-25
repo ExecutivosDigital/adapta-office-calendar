@@ -91,3 +91,43 @@ export type AdminUserDetails = UserSummary & {
     confirmedSelections: number;
   };
 };
+
+// ── Painel de porta (display) ───────────────────────────────────────────────
+
+export type DisplayEntry = {
+  id: string;
+  start_time: string;
+  end_time: string;
+  title: string;
+  company_name: string;
+  customer_name: string;
+  people_count: number;
+  state: "running" | "upcoming" | "done";
+};
+
+export type DisplayRoom = {
+  id: string;
+  name: string;
+  slug: string;
+  capacity: number;
+  location: string | null;
+  status: "occupied" | "free" | "closed";
+  current: DisplayEntry | null;
+  next: DisplayEntry | null;
+  freeUntil: string | null;
+  target: { time: string; kind: "end" | "start" } | null;
+  reservations: DisplayEntry[];
+};
+
+export type DisplayPayload = {
+  date: string;
+  serverTime: { iso: string; dateISO: string; time: string; minutes: number };
+  business: {
+    opening: string;
+    closing: string;
+    slotMinutes: number;
+    timezone: string;
+    openToday: boolean;
+  };
+  rooms: DisplayRoom[];
+};

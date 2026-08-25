@@ -15,8 +15,8 @@ const WA_HREF = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(
 export function BottomNav() {
   const pathname = usePathname() ?? "/";
 
-  // Hide on admin routes
-  if (pathname.startsWith("/admin")) return null;
+  // Hide on admin routes e no painel de porta (tela cheia, sem navegação)
+  if (pathname.startsWith("/admin") || pathname.startsWith("/painel")) return null;
 
   const isAgendamentos =
     pathname === "/" || pathname.startsWith("/agendamento");
