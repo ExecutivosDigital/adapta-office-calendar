@@ -338,6 +338,86 @@ export async function getUsageReportApi(filters: {
   return apiFetch<UsageReport>(`/admin/reports/usage${query ? `?${query}` : ""}`);
 }
 
+export type RoomReportReservation = {
+  id: string;
+  date: string;
+  weekday: string;
+  startTime: string;
+  endTime: string;
+  minutes: number;
+  status: "confirmed" | "cancelled";
+  customerName: string;
+  companyName: string;
+  customerPhone: string | null;
+  peopleCount: number;
+  createdAt: string;
+  cancelledAt: string | null;
+  cancelledBy: string | null;
+};
+
+export type RoomReportEntry = {
+  room: {
+    id: string;
+    name: string;
+    slug: string;
+    capacity: number;
+    location: string | null;
+    is_active: boolean;
+  };
+  summary: {
+    totalReservations: number;
+    confirmedReservations: number;
+    cancelledReservations: number;
+    cancellationRate: number;
+    minutesUsed: number;
+    cancelledMinutes: number;
+    confirmedSelections: number;
+    averageMinutes: number;
+    availableMinutes: number;
+    occupancyRate: number;
+    averagePeople: number;
+    capacityUsageRate: number;
+  };
+  reservations: RoomReportReservation[];
+  byCompany: Array<{
+    companyName: string;
+    reservations: number;
+    minutes: number;
+    selections: number;
+    people: number;
+    averagePeople: number;
+  }>;
+  byDay: Array<{ date: string; reservations: number; minutes: number }>;
+  byHour: Array<{ startTime: string; reservations: number; minutes: number }>;
+  byWeekday: Array<{ weekday: number; label: string; reservations: number; minutes: number }>;
+};
+
+export type RoomsReport = {
+  from: string | null;
+  to: string | null;
+  effectiveFrom: string;
+  effectiveTo: string;
+  hasExplicitRange: boolean;
+  businessDays: number;
+  dailyMinutes: number;
+  availableMinutes: number;
+  businessHours: { opening: string; closing: string; slotMinutes: number };
+  rooms: RoomReportEntry[];
+};
+
+export async function getRoomsReportApi(filters: {
+  from?: string;
+  to?: string;
+  room_id?: string;
+} = {}): Promise<RoomsReport> {
+  const params = new URLSearchParams();
+  if (filters.from) params.set("from", filters.from);
+  if (filters.to) params.set("to", filters.to);
+  if (filters.room_id) params.set("room_id", filters.room_id);
+  const query = params.toString();
+  return apiFetch<RoomsReport>(`/admin/reports/rooms${query ? `?${query}` : ""}`);
+}
+
 export async function cancelAdminReservationApi(reservationId: string): Promise<void> {
   await apiFetch<unknown>(`/admin/reservations/${reservationId}`, { method: "DELETE" });
 }

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { BarChart3, CalendarDays, Clock3, LayoutDashboard, LogOut, Users, Building2 } from "lucide-react";
+import { BarChart3, CalendarDays, Clock3, Download, LayoutDashboard, LogOut, Users, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +41,19 @@ export function UsageReportClient({
     });
   }
 
+  // Usa os filtros digitados, mesmo que "Atualizar relatório" ainda não tenha
+  // sido clicado — é o que a pessoa espera ao baixar logo após trocar as datas.
+  const exportHref = useMemo(() => {
+    const params = new URLSearchParams();
+    if (from) params.set("from", from);
+    if (to) params.set("to", to);
+    if (roomId !== "all") params.set("room_id", roomId);
+    const query = params.toString();
+    return `/admin/relatorios/uso/export${query ? `?${query}` : ""}`;
+  }, [from, to, roomId]);
+
+  const invalidRange = Boolean(from && to && from > to);
+
   const maxDayMinutes = Math.max(...report.byDay.map((item) => item.minutes), 1);
 
   return (
@@ -72,7 +85,19 @@ export function UsageReportClient({
             <div className="space-y-1.5"><Label htmlFor="usage-to">Até</Label><Input id="usage-to" type="date" value={to} onChange={(event) => setTo(event.target.value)} /></div>
             <div className="space-y-1.5"><Label>Sala</Label><Select value={roomId} onValueChange={setRoomId}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Todas as salas</SelectItem>{rooms.map((room) => <SelectItem key={room.id} value={room.id}>{room.name}</SelectItem>)}</SelectContent></Select></div>
           </div>
-          <div className="mt-4 flex justify-end"><Button onClick={refresh} disabled={isPending}>{isPending ? "Atualizando..." : "Atualizar relatório"}</Button></div>
+          <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+            <Button variant="outline" asChild={!invalidRange} disabled={invalidRange}>
+              {invalidRange ? (
+                <span><Download className="mr-1.5 h-4 w-4" />Baixar Excel</span>
+              ) : (
+                <a href={exportHref}><Download className="mr-1.5 h-4 w-4" />Baixar Excel</a>
+              )}
+            </Button>
+            <Button onClick={refresh} disabled={isPending}>{isPending ? "Atualizando..." : "Atualizar relatório"}</Button>
+          </div>
+          <p className="mt-2 text-right text-xs text-stone-500">
+            A planilha traz uma aba por sala, com resumo, quem usou, horários de pico e todas as reservas do período.
+          </p>
         </section>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
