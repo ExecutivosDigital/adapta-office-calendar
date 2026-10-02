@@ -26,18 +26,18 @@ export function ReservationCard({
   return (
     <div className="rounded-2xl border border-stone-200/70 bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-base font-semibold text-stone-900">
+        <div className="min-w-0">
+          <p className="truncate text-base font-semibold text-stone-900">
             {reservation.user_id ? <Link className="hover:text-brand-700 hover:underline" href={`/admin/usuarios/${reservation.user_id}`}>{reservation.customer_name}</Link> : reservation.customer_name}
           </p>
-          <p className="text-xs text-stone-500">{reservation.company_name}</p>
+          <p className="truncate text-xs text-stone-500">{reservation.company_name}</p>
         </div>
         <Badge variant={isCancelled ? "cancelled" : "confirmed"}>
           {isCancelled ? "Cancelada" : "Confirmada"}
         </Badge>
       </div>
 
-      <dl className="mt-4 grid grid-cols-2 gap-y-2 text-sm text-stone-700">
+      <dl className="mt-4 grid grid-cols-1 gap-x-4 gap-y-2 text-sm text-stone-700 min-[400px]:grid-cols-2">
         <Item icon={MapPin} text={reservation.room.name} />
         <Item icon={Users} text={`${reservation.people_count} pessoas`} />
         <Item icon={Calendar} text={formatDateShort(reservation.reservation_date)} />
@@ -98,8 +98,8 @@ function Item({
   text: string;
 }) {
   return (
-    <div className="flex items-center gap-1.5">
-      <Icon className="h-3.5 w-3.5 text-stone-400" />
+    <div className="flex min-w-0 items-center gap-1.5">
+      <Icon className="h-3.5 w-3.5 shrink-0 text-stone-400" />
       <span className="truncate">{text}</span>
     </div>
   );

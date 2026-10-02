@@ -10,6 +10,10 @@ const config: Config = {
       screens: { "2xl": "1280px" },
     },
     extend: {
+      screens: {
+        // Telas baixas (ex.: tablet deitado com barra do navegador).
+        short: { raw: "(max-height: 720px)" },
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

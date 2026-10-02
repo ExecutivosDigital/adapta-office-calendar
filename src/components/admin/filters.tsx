@@ -47,17 +47,18 @@ export function AdminFilters({
   return (
     <div className="rounded-2xl border border-stone-200/70 bg-white p-4 shadow-sm sm:p-5">
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="space-y-1.5">
+        <div className="min-w-0 space-y-1.5">
           <Label htmlFor="filter-date">Data</Label>
           <Input
             id="filter-date"
             type="date"
+            className="min-w-0"
             defaultValue={initial.date ?? ""}
             onChange={(e) => update("date", e.target.value || undefined)}
           />
         </div>
 
-        <div className="space-y-1.5">
+        <div className="min-w-0 space-y-1.5">
           <Label>Sala</Label>
           <Select
             value={initial.room_id ?? "all"}
@@ -77,7 +78,7 @@ export function AdminFilters({
           </Select>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="min-w-0 space-y-1.5">
           <Label>Status</Label>
           <Select
             value={initial.status ?? "all"}

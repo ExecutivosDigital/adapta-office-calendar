@@ -19,21 +19,21 @@ export function MetricCard({
     stone: "bg-stone-100 text-stone-700",
   };
   return (
-    <div className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-medium uppercase tracking-wider text-stone-500">
+    <div className="min-w-0 rounded-2xl border border-stone-200/70 bg-white p-4 shadow-sm sm:p-5">
+      <div className="flex items-center justify-between gap-2">
+        <p className="truncate text-xs font-medium uppercase tracking-wider text-stone-500">
           {label}
         </p>
         <div
           className={cn(
-            "flex h-9 w-9 items-center justify-center rounded-xl",
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
             tones[tone]
           )}
         >
           <Icon className="h-4 w-4" />
         </div>
       </div>
-      <p className="mt-3 text-3xl font-semibold text-stone-900">{value}</p>
+      <p className="mt-3 text-2xl font-semibold sm:text-3xl text-stone-900">{value}</p>
     </div>
   );
 }

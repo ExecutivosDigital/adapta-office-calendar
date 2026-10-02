@@ -54,23 +54,23 @@ export function DashboardClient({
   return (
     <div className="min-h-screen bg-cream">
       <header className="border-b border-stone-200/70 bg-white">
-        <div className="container flex items-center justify-between py-4">
-          <div className="flex items-center gap-3">
+        <div className="container flex items-center justify-between gap-3 py-4">
+          <div className="flex min-w-0 items-center gap-3">
             <Image
               src="/logo.gif"
               alt="Adapta Offices"
               width={36}
               height={45}
-              className="rounded-md"
+              className="shrink-0 rounded-md"
             />
-            <div>
-              <p className="text-sm font-semibold text-stone-900">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-stone-900">
                 Adapta Offices
               </p>
-              <p className="text-xs text-stone-500">Painel administrativo</p>
+              <p className="truncate text-xs text-stone-500">Painel administrativo</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
             <Button variant="ghost" size="sm" asChild>
               <Link href="/admin/rooms">
                 <DoorOpen className="mr-2 h-4 w-4" />
@@ -107,7 +107,7 @@ export function DashboardClient({
           </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
           <MetricCard
             label="Hoje"
             value={metrics.todayCount}
@@ -154,7 +154,7 @@ export function DashboardClient({
           </div>
         ) : (
           <>
-            <div className="space-y-3 lg:hidden">
+            <div className="grid gap-3 md:grid-cols-2 xl:hidden">
               {reservations.map((r) => (
                 <ReservationCard
                   key={r.id}

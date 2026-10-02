@@ -14,8 +14,8 @@ export function ReservationTable({
   onCancel: (r: ReservationWithRoom) => void;
 }) {
   return (
-    <div className="hidden rounded-2xl border border-stone-200/70 bg-white shadow-sm lg:block">
-      <table className="w-full text-sm">
+    <div className="hidden overflow-x-auto rounded-2xl border border-stone-200/70 bg-white shadow-sm xl:block">
+      <table className="w-full min-w-[960px] text-sm">
         <thead className="border-b border-stone-200/70 text-left text-xs uppercase tracking-wider text-stone-500">
           <tr>
             <th className="px-4 py-3 font-medium">Data / Horário</th>
@@ -29,7 +29,7 @@ export function ReservationTable({
         <tbody className="divide-y divide-stone-100">
           {reservations.map((r) => (
             <tr key={r.id} className="hover:bg-stone-50/50">
-              <td className="px-4 py-3 text-stone-800">
+              <td className="whitespace-nowrap px-4 py-3 text-stone-800">
                 <div className="font-medium">
                   {formatDateShort(r.reservation_date)}
                 </div>

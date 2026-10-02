@@ -111,11 +111,11 @@ export function PainelClient({
   }
 
   return (
-    <main className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-[#08080A] text-white lg:flex-row">
+    <main className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-[#08080A] text-white landscape:flex-row">
       {/* ── Agenda ─────────────────────────────────────────────────────── */}
-      <section className="flex min-h-0 flex-1 flex-col border-b border-white/10 lg:border-b-0 lg:border-r">
-        <header className="flex items-center gap-5 px-8 pb-5 pt-7">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white p-2">
+      <section className="flex min-h-0 min-w-0 flex-1 flex-col border-b border-white/10 landscape:border-b-0 landscape:border-r">
+        <header className="flex shrink-0 items-center gap-4 px-5 pb-4 pt-5 sm:gap-5 sm:px-8 sm:pb-5 sm:pt-7 short:pb-3 short:pt-4">
+          <div className="flex h-12 w-12 shrink-0 sm:h-16 sm:w-16 short:h-12 short:w-12 items-center justify-center rounded-2xl bg-white p-2">
             <Image
               src="/logo-mini.png"
               alt="Adapta Offices"
@@ -125,17 +125,17 @@ export function PainelClient({
               priority
             />
           </div>
-          <div>
-            <h1 className="text-[clamp(1.75rem,3.2vw,2.75rem)] font-bold leading-none tracking-tight">
+          <div className="min-w-0">
+            <h1 className="text-[clamp(1.5rem,3.2vw,2.75rem)] font-bold leading-none tracking-tight">
               AGENDA DE SALAS
             </h1>
-            <p className="mt-2 text-[clamp(0.85rem,1.2vw,1.05rem)] text-white/45">
+            <p className="mt-1.5 text-[clamp(0.8rem,1.2vw,1.05rem)] text-white/45">
               Planeje. Conecte. Realize.
             </p>
           </div>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-8 pb-4">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-4 sm:px-8">
           {rooms.map((room) => (
             <RoomAgenda
               key={room.id}
@@ -146,7 +146,7 @@ export function PainelClient({
           ))}
         </div>
 
-        <footer className="grid grid-cols-3 gap-4 border-t border-white/10 px-8 py-4">
+        <footer className="grid shrink-0 grid-cols-3 gap-3 border-t border-white/10 px-5 py-3 sm:gap-4 sm:px-8 sm:py-4">
           <FooterItem
             icon={<Clock3 className="h-5 w-5" />}
             label="Horário de funcionamento"
@@ -176,9 +176,9 @@ export function PainelClient({
       </section>
 
       {/* ── Cronômetro ─────────────────────────────────────────────────── */}
-      <section className="flex min-h-0 flex-1 flex-col items-center justify-between px-8 py-7 lg:max-w-[46%]">
-        <div className="flex items-center gap-4">
-          <CalendarDays className="h-9 w-9 text-white/35" />
+      <section className="flex min-h-0 min-w-0 flex-1 flex-col items-center gap-4 px-5 py-5 sm:px-8 sm:py-7 short:gap-3 short:py-4 landscape:max-w-[46%]">
+        <div className="flex shrink-0 items-center gap-4">
+          <CalendarDays className="h-8 w-8 shrink-0 text-white/35 sm:h-9 sm:w-9" />
           <div>
             <p className="text-[clamp(1.4rem,2.6vw,2.25rem)] font-bold leading-none tracking-tight">
               {formatWeekday(data.date)}
@@ -191,14 +191,14 @@ export function PainelClient({
 
         <CountdownDial room={focused} clock={clock} closing={data.business.closing} />
 
-        <div className="flex w-full flex-col items-center gap-3">
-          <p className="text-center text-[clamp(0.9rem,1.4vw,1.15rem)] font-medium text-white/70">
+        <div className="flex w-full shrink-0 flex-col items-center gap-3 short:gap-2">
+          <p className="max-w-full truncate text-center text-[clamp(0.9rem,1.4vw,1.15rem)] font-medium text-white/70">
             {focused.name}
           </p>
           <button
             type="button"
             onClick={toggleFullscreen}
-            className="flex items-center gap-3 rounded-full border border-white/[0.12] bg-white/[0.04] px-7 py-3.5 text-sm font-semibold tracking-wide text-white/70 transition-colors hover:bg-white/10"
+            className="flex items-center gap-3 rounded-full border border-white/[0.12] bg-white/[0.04] px-6 py-3 text-sm short:py-2 font-semibold tracking-wide text-white/70 transition-colors hover:bg-white/10"
           >
             {fullscreen ? (
               <Minimize2 className="h-5 w-5" />
@@ -207,7 +207,7 @@ export function PainelClient({
             )}
             {fullscreen ? "SAIR DA TELA CHEIA" : "TELA CHEIA"}
           </button>
-          <p className="flex items-center gap-2 text-[11px] uppercase tracking-widest text-white/25">
+          <p className="flex items-center gap-2 text-[11px] uppercase tracking-widest text-white/25 short:hidden">
             <MonitorSmartphone className="h-3.5 w-3.5" />
             {wakeLockActive ? "Tela sempre ativa" : "Modo painel"}
           </p>
@@ -236,10 +236,10 @@ function RoomAgenda({
         onClick={onSelect}
         className="flex w-full items-center gap-3 border-b border-white/10 py-3 text-left"
       >
-        <Users className={cn("h-6 w-6", focused ? "text-brand-400" : "text-white/35")} />
+        <Users className={cn("h-6 w-6 shrink-0", focused ? "text-brand-400" : "text-white/35")} />
         <span
           className={cn(
-            "text-[clamp(1rem,1.7vw,1.4rem)] font-semibold uppercase tracking-wide",
+            "min-w-0 truncate text-[clamp(1rem,1.7vw,1.4rem)] font-semibold uppercase tracking-wide",
             focused ? "text-white" : "text-white/55",
           )}
         >
@@ -247,7 +247,7 @@ function RoomAgenda({
         </span>
         <StatusDot status={room.status} />
         {done > 0 && (
-          <span className="ml-auto text-[11px] uppercase tracking-widest text-white/25">
+          <span className="ml-auto shrink-0 text-[11px] uppercase tracking-widest text-white/25">
             {done} encerrada{done > 1 ? "s" : ""}
           </span>
         )}
@@ -271,10 +271,10 @@ function RoomAgenda({
 function EntryRow({ entry }: { entry: DisplayEntry }) {
   const running = entry.state === "running";
   return (
-    <li className="flex items-center gap-5 border-b border-white/[0.06] py-3 last:border-b-0">
+    <li className="flex items-center gap-3 border-b sm:gap-5 border-white/[0.06] py-3 last:border-b-0">
       <span
         className={cn(
-          "w-[clamp(7.5rem,11vw,10rem)] shrink-0 tabular-nums text-[clamp(0.9rem,1.35vw,1.15rem)]",
+          "w-[clamp(6.5rem,11vw,10rem)] shrink-0 tabular-nums text-[clamp(0.9rem,1.35vw,1.15rem)]",
           running ? "text-white" : "text-white/60",
         )}
       >
@@ -291,7 +291,7 @@ function EntryRow({ entry }: { entry: DisplayEntry }) {
       </span>
       <span
         className={cn(
-          "shrink-0 rounded-full border px-3.5 py-1.5 text-[clamp(0.6rem,0.85vw,0.75rem)] font-semibold uppercase tracking-wider",
+          "shrink-0 rounded-full border px-3 py-1.5 text-[clamp(0.6rem,0.85vw,0.75rem)] font-semibold uppercase tracking-wider",
           running
             ? "border-brand-500/50 bg-brand-500/15 text-brand-300"
             : "border-white/[0.12] bg-white/[0.04] text-white/45",
@@ -311,7 +311,7 @@ function StatusDot({ status }: { status: DisplayRoom["status"] }) {
   } as const;
   const { color, label } = map[status];
   return (
-    <span className="flex items-center gap-2 text-[11px] uppercase tracking-widest text-white/40">
+    <span className="flex shrink-0 items-center gap-2 text-[11px] uppercase tracking-widest text-white/40">
       <span className={cn("h-2 w-2 rounded-full", color)} />
       {label}
     </span>
@@ -328,8 +328,8 @@ function FooterItem({
   value: string;
 }) {
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-white/35">{icon}</span>
+    <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+      <span className="shrink-0 text-white/35">{icon}</span>
       <div className="min-w-0">
         <p className="truncate text-[10px] uppercase tracking-widest text-white/35">{label}</p>
         <p className="truncate text-[clamp(0.75rem,1vw,0.95rem)] font-medium text-white/80">
@@ -394,9 +394,14 @@ function CountdownDial({
       : `Livre até ${room.freeUntil ?? closing}`;
 
   return (
-    <div className="relative flex w-full max-w-[min(70vh,34rem)] flex-col items-center">
-      <div className="relative w-full">
-        <svg viewBox="0 0 100 100" className="w-full -rotate-90">
+    <div className="flex min-h-0 w-full flex-1 flex-col items-center">
+      {/* Caixa flexível: o SVG encaixa o anel no menor lado e o texto escala
+          com cqmin, então nada vaza em tablet deitado ou em pé. */}
+      <div
+        className="relative min-h-0 w-full max-w-[34rem] flex-1"
+        style={{ containerType: "size" }}
+      >
+        <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full">
           <circle
             cx="50"
             cy="50"
@@ -415,34 +420,40 @@ function CountdownDial({
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={circumference * progress}
+            transform="rotate(-90 50 50)"
             style={{ transition: "stroke-dashoffset 1s linear" }}
           />
         </svg>
 
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+        <div
+          className="absolute inset-0 flex flex-col items-center justify-center"
+          style={{ gap: "clamp(0.5rem, 4cqmin, 1rem)" }}
+        >
           <p
             className={cn(
-              "tabular-nums text-[clamp(2.5rem,7.5vw,5.5rem)] font-bold leading-none tracking-tight",
+              "tabular-nums font-bold leading-none tracking-tight",
               remaining === null && "text-white/40",
             )}
+            style={{ fontSize: "clamp(1.5rem, 15cqmin, 5.5rem)" }}
           >
             {remaining !== null ? formatCountdown(remaining) : "--:--:--"}
           </p>
           <span
-            className="flex items-center gap-2 rounded-full border px-5 py-2 text-[clamp(0.65rem,1vw,0.85rem)] font-semibold uppercase tracking-wider"
+            className="flex items-center gap-2 rounded-full border px-4 py-1.5 font-semibold uppercase tracking-wider"
             style={{
+              fontSize: "clamp(0.6rem, 3.2cqmin, 0.85rem)",
               borderColor: `${accent}55`,
               backgroundColor: `${accent}1f`,
               color: accent,
             }}
           >
-            <Play className="h-4 w-4" />
+            <Play className="h-3.5 w-3.5" />
             {label}
           </span>
         </div>
       </div>
 
-      <p className="mt-6 max-w-full truncate px-4 text-center text-[clamp(0.8rem,1.2vw,1.05rem)] text-white/50">
+      <p className="mt-3 max-w-full shrink-0 truncate px-4 text-center text-[clamp(0.8rem,1.2vw,1.05rem)] text-white/50">
         {caption}
       </p>
     </div>
